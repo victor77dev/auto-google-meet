@@ -9,10 +9,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     }
 });
 
-function sendData(data) {
-    chrome.runtime.sendMessage({ action: 'updatePopup', data });
-}
-
 function debounce(func, delay) {
     let timeoutId;
   
@@ -25,6 +21,10 @@ function debounce(func, delay) {
             func.apply(context, args);
         }, delay);
     };
+}
+
+function debounceSendData(data) {
+    debounce(chrome.runtime.sendMessage({ action: 'updatePopup', data }), 1000);
 }
 
 function clickJoinButton() {
@@ -45,7 +45,7 @@ function clickJoinButton() {
     const userImage = img[0];
     const name = userImage?.title;
 
-    debounce(sendData({ name, userImage }), 1000);
+    debounceSendData({ name, userImage });
 
     const searchButton = 'data-mdc-dialog-action';
     const acceptButton = dialogDiv[1].querySelector(`button[${searchButton}="accept"]`);
