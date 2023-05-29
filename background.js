@@ -5,6 +5,7 @@ let joinList = [];
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message.action === 'updatePopup') {
         if (openPopup) return;
+
         chrome.windows.getCurrent((currentWindow) => {
             if (!currentWindow || currentWindow.type !== 'popup') {
                 chrome.windows.create({

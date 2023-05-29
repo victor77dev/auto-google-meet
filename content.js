@@ -1,4 +1,4 @@
-let autoAccept = true;
+let autoAccept = false;
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     console.log(message)
@@ -23,35 +23,37 @@ function debounce(func, delay) {
     };
 }
 
-function debounceSendData(data) {
-    debounce(chrome.runtime.sendMessage({ action: 'updatePopup', data }), 1000);
-}
+const sendData = debounce((data) => {
+    chrome.runtime.sendMessage({ action: 'updatePopup', data });
+}, 1000);
 
 function clickJoinButton() {
     const dialogDiv = document.querySelectorAll('div[role="dialog"]>div');
 
-
     if (!dialogDiv || dialogDiv.length === 0) return;
 
     console.log(autoAccept)
-    const img = dialogDiv[0].querySelectorAll('img');
+    const imgEle = dialogDiv[0].querySelectorAll('img');
 
-    if (!img || img.length === 0) return;
+    if (!imgEle || imgEle.length === 0) return;
 
-    if (img.length > 1) {
+    if (imgEle.length > 1) {
         //multiple users
     }
 
-    const userImage = img[0];
+    const userImage = imgEle[0];
+    const img = userImage?.src;
     const name = userImage?.title;
 
-    debounceSendData({ name, userImage });
+    sendData({ name, img });
 
     const searchButton = 'data-mdc-dialog-action';
     const acceptButton = dialogDiv[1].querySelector(`button[${searchButton}="accept"]`);
     const declineButton = dialogDiv[1].querySelector(`button[${searchButton}="decline"]`);
 
-    acceptButton?.click();
+    if (autoAccept) {
+        acceptButton?.click();
+    }
 }
 
 // Check for the join button every second

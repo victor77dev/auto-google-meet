@@ -4,10 +4,13 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         const user = document.createElement('div');
         const name = document.createElement('div');
         name.innerHTML = message.data.name;
-        const img = message.data.img;
+        const img = document.createElement('img');
+        img.src = message.data.img;
+        img.height = 48;
+        img.width = 48;
 
         user.appendChild(name);
-        // user.appendChild(img);
+        user.appendChild(img);
 
         document.getElementById('list').appendChild(user);
     }
