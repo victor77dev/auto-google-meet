@@ -1,7 +1,8 @@
-let autoAccept = false;
+let autoAccept = true;
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     console.log(message)
+
     if (message.action === 'enable') {
         autoAccept = true;
     } else if (message.action === 'disable') {
