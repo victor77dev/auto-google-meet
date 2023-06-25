@@ -14,9 +14,13 @@ const EVERYONE = [
     '所有人',
 ];
 
-let autoAccept = true;
+const JOIN = [
+    'join',
+    '加入',
+];
 
-let userListOpened = false;
+
+let autoAccept = true;
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     console.log(message)
@@ -55,19 +59,43 @@ function findElement(node, textList) {
     }
 }
 
-function clickUserList() {
-    if (userListOpened) return;
+function isUserListOpened() {
+    const nameList = Array.from(document.querySelectorAll('div[role="list"]'));
 
+    return checkVisible(nameList);
+}
+
+function openUserList() {
+    if (isUserListOpened()) return;
+
+    clickUserList();
+}
+
+function closeUserList() {
+    if (!isUserListOpened()) return;
+
+    clickUserList();
+}
+
+function clickUserList() {
     const buttonList = document.querySelectorAll('button');
     Array.from(buttonList)?.find((button) => {
         const list = findElement(button, EVERYONE);
         list?.click();
-        userListOpened = true;
 
         if (list) {
             return true;
         }
     });
+}
+
+function checkVisible(ele) {
+    const rect = ele?.getBoundingClientRect();
+    if (rect?.width === 0 && rect?.height === 0) {
+        return false;
+    } else {
+        return true;
+    }
 }
 
 function checkNewJoiner() {
@@ -81,9 +109,12 @@ function checkNewJoiner() {
         console.log('joined call')
     }
 
-    clickUserList();
+    // checkPendingJoiner();
+    openUserList();
 
-    const acceptList = Array.from(document.querySelectorAll('div[role="list"]')).find((node) => {
+    const nameList = Array.from(document.querySelectorAll('div[role="list"]'));
+
+    const acceptList = nameList?.find((node) => {
         if (findElement(node, WAIT)) {
             return true;
         }
@@ -92,6 +123,17 @@ function checkNewJoiner() {
     if (!acceptList) return;
 
     clickJoinButton(acceptList);
+    closeUserList();
+}
+
+function checkPendingJoiner() {
+    const newJoinerNotification = document.querySelectorAll('div[style="bottom: 80px; right: 0px;"]')[0];
+
+    if (findElement(newJoinerNotification, JOIN)) {
+        return true;
+    } else {
+        return false;
+    }
 }
 
 function clickJoinButton(element) {
@@ -101,9 +143,6 @@ function clickJoinButton(element) {
         const acceptButton = findElement(node, ACCEPT);
         acceptButton?.click();
     });
-
-    clickUserList();
-    userListOpened = false;
 }
 
 document.body.addEventListener('DOMNodeInserted', debounce(() => {
