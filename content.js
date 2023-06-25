@@ -1,4 +1,21 @@
+const ACCEPT = [
+    'accept',
+    '允許',
+];
+
+const WAIT = [
+    'wait',
+    '等待',
+];
+
+const EVERYONE = [
+    'everyone',
+    '所有人',
+];
+
 let autoAccept = true;
+
+let userListOpened = false;
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     console.log(message)
@@ -28,34 +45,66 @@ const sendData = debounce((data) => {
     chrome.runtime.sendMessage({ action: 'updatePopup', data });
 }, 1000);
 
-function clickJoinButton() {
-    const dialogDiv = document.querySelectorAll('div[role="dialog"]>div');
-
-    if (!dialogDiv || dialogDiv.length === 0) return;
-
-    console.log(autoAccept)
-    const imgEle = dialogDiv[0].querySelectorAll('img');
-
-    if (!imgEle || imgEle.length === 0) return;
-
-    if (imgEle.length > 1) {
-        //multiple users
-    }
-
-    const userImage = imgEle[0];
-    const img = userImage?.src;
-    const name = userImage?.title;
-
-    sendData({ name, img });
-
-    const searchButton = 'data-mdc-dialog-action';
-    const acceptButton = dialogDiv[1].querySelector(`button[${searchButton}="accept"]`);
-    const declineButton = dialogDiv[1].querySelector(`button[${searchButton}="decline"]`);
-
-    if (autoAccept) {
-        acceptButton?.click();
+function findElement(node, textList) {
+    const label = node.getAttribute('aria-label');
+    if (textList.find((text) => label?.includes(text))) {
+        return node;
+    } else {
+        return null;
     }
 }
 
-// Check for the join button every second
-document.body.addEventListener('DOMNodeInserted', clickJoinButton);
+function clickUserList() {
+    if (userListOpened) return;
+
+    const buttonList = document.querySelectorAll('button');
+    Array.from(buttonList)?.find((button) => {
+        const list = findElement(button, EVERYONE);
+        list?.click();
+        userListOpened = true;
+
+        if (list) {
+            return true;
+        }
+    });
+}
+
+function checkNewJoiner() {
+    const companionButton = Array.from(document.querySelectorAll('button'))
+        .find((button) => button.innerText.toLowerCase().match('companion'));
+
+    if (companionButton) {
+        console.log('Not joined call yet');
+        return;
+    } else {
+        console.log('joined call')
+    }
+
+    clickUserList();
+
+    const acceptList = Array.from(document.querySelectorAll('div[role="list"]')).find((node) => {
+        if (findElement(node, WAIT)) {
+            return true;
+        }
+    });
+
+    if (!acceptList) return;
+
+    clickJoinButton(acceptList);
+}
+
+function clickJoinButton(element) {
+    const userList = Array.from(element?.querySelectorAll('button'));
+
+    userList.forEach((node) => {
+        const acceptButton = findElement(node, ACCEPT);
+        acceptButton?.click();
+    });
+
+    clickUserList();
+    userListOpened = false;
+}
+
+document.body.addEventListener('DOMNodeInserted', debounce(() => {
+    checkNewJoiner();
+}, 1000));
