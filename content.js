@@ -60,7 +60,7 @@ function findElement(node, textList) {
 }
 
 function isUserListOpened() {
-    const nameList = Array.from(document.querySelectorAll('div[role="list"]'));
+    const nameList = Array.from(document.querySelectorAll('div[role="list"]'))?.[0];
 
     return checkVisible(nameList);
 }
@@ -90,6 +90,8 @@ function clickUserList() {
 }
 
 function checkVisible(ele) {
+    if (!ele) return false;
+
     const rect = ele?.getBoundingClientRect();
     if (rect?.width === 0 && rect?.height === 0) {
         return false;
