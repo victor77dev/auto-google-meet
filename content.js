@@ -1,6 +1,7 @@
 const ACCEPT = [
     'accept',
     '允許',
+    '允许'
 ];
 
 const WAIT = [
